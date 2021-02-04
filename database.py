@@ -7,7 +7,7 @@ Base = declarative_base()
 class ExpenseRecord(Base):
     __tablename__ = 'Expense Record'
 
-    id_num = Column(Integer, primary_key=True, autoincrement=1)
+    id_num = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date)
     category = Column(String)
     amount = Column(Integer)
@@ -17,10 +17,10 @@ class ExpenseRecord(Base):
         return f'<Expense(id: {self.id_num}, date: {self.date}, category: {self.category}, amount: {self.amount}, content: {self.content})>'
 
 
-class MonthlyBudgetRecord(Base):
+class BudgetRecord(Base):
     __tablename__ = 'Monthly Budget Record'
 
-    month = Column(Date, primary_key=True)
+    month = Column(String, primary_key=True)
     income = Column(Integer)
     outcome = Column(Integer)
     saving = Column(Integer)
