@@ -17,7 +17,7 @@ class CommandCode(IntEnum):
     QUIT = 5
 
 parser = argparse.ArgumentParser()
-parser.add_argument('command', nargs='?', default=CommandCode.WAIT)
+parser.add_argument('command', nargs='?', default='wait')
 args = vars(parser.parse_args())
 
 category_map = {'1': ['Quy chi tieu can thiet', 'living'], 
