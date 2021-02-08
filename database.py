@@ -5,7 +5,7 @@ Base = declarative_base()
 
 
 class ExpenseRecord(Base):
-    __tablename__ = 'Expense Record'
+    __tablename__ = 'Expense_Record'
 
     id_num = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date)
@@ -18,12 +18,12 @@ class ExpenseRecord(Base):
 
 
 class BudgetRecord(Base):
-    __tablename__ = 'Monthly Budget Record'
+    __tablename__ = 'Budget_Record'
 
     month = Column(String, primary_key=True)
-    income = Column(Integer)
-    outcome = Column(Integer)
-    saving = Column(Integer)
+    income = Column(Integer, default=0)
+    outcome = Column(Integer, default=0)
+    saving = Column(Integer, default=0)
 
     def __repr__(self):
         return f'<Budget(month: {self.month}, income: {self.income}, outcome: {self.outcome}, saving: {self.saving}'  

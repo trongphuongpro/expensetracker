@@ -37,13 +37,6 @@ command_map = {'wait': CommandCode.WAIT,
                 'b': CommandCode.BACK, 
                 'q': CommandCode.QUIT}
 
-check_prompt_text = '''\
-[1] expense
-[2] budget
-[b] back
-[q] quit
-'''
-
 
 def getExpense(category):
     # /usr/bin/clear screen
@@ -79,13 +72,19 @@ def addExpenseRecord(category):
 def updateBudgetRecord(query_time):
     total_expense = session.query(func.sum(ExpenseRecord.amount)).filter(and_(extract('month', ExpenseRecord.date)==today.month,
                                                  extract('year', ExpenseRecord.date)==today.year)).scalar()
+    
+    total_saving = session.query(func.sum(ExpenseRecord.amount)).filter(and_(extract('month', ExpenseRecord.date)==today.month,
+                                                 extract('year', ExpenseRecord.date)==today.year,
+                                                 ExpenseRecord.category=='saving')).scalar()
+
     result = session.query(BudgetRecord).filter_by(month=query_time).first()
 
     if result is None:
-        new_budget_record = BudgetRecord(month=query_time, outcome=total_expense)
+        new_budget_record = BudgetRecord(month=query_time, outcome=total_expense, saving=total_saving)
         session.add(new_budget_record)
     else:
         result.outcome = total_expense
+        result.saving = total_saving
     session.commit()
 
 
@@ -104,6 +103,8 @@ def updateIncome(query_time):
         result.income += income
     session.commit()
 
+    return CommandCode.WAIT
+
 
 def getQueryTime():
     try:
@@ -118,8 +119,15 @@ def getQueryTime():
     return query_time
 
 
-def checkRecord(option):
+def checkExpenseRecord():
     result = session.query(ExpenseRecord.category, ExpenseRecord.amount, ExpenseRecord.content).all()
+    print(result)
+    return CommandCode.WAIT
+
+
+def checkBudgetRecord():
+    result = session.query(BudgetRecord.month, BudgetRecord.income, 
+                            BudgetRecord.outcome, BudgetRecord.saving).all()
     print(result)
     return CommandCode.WAIT
 
@@ -160,6 +168,13 @@ def add():
 
 
 def check():
+    check_prompt_text = '''\
+[1] expense
+[2] budget
+[b] back
+[q] quit
+'''
+
     os.system('/usr/bin/clear')
     print(Fore.GREEN + check_prompt_text + Fore.RESET)
 
@@ -167,10 +182,12 @@ def check():
 
     if option == 'b':
         return CommandCode.WAIT
-    elif option == 'q':
+    if option == 'q':
         return CommandCode.QUIT
-    else:
-        return checkRecord(option)
+    if option == '1':
+        return checkExpenseRecord()
+    if option == '2':
+        return checkBudgetRecord()
 
 
 def main():
@@ -191,8 +208,7 @@ def main():
 
         elif command == CommandCode.UPDATE:
             query_time = getQueryTime()
-            updateIncome(query_time)
-            command = CommandCode.WAIT
+            command = updateIncome(query_time)
 
         elif command == CommandCode.QUIT:
             os.system('/usr/bin/clear')
