@@ -63,9 +63,9 @@ menu_check_expense = {
 
 
 table_header_template = '''
-{0:+<60}
-+{fields[0]:^16}+{fields[1]:^10}+{fields[2]:^30}+
-{0:+<60}
+{0:+<48}
++{fields[0]:^12}+{fields[1]:^8}+{fields[2]:^24}+
+{0:+<48}
 '''
 
-table_row_template = "+{values[0]:^16}+{values[1]:^10}+{values[2]:^30}+\n"
+table_row_template = "+{values[0]:^12}+{values[1]:^8}+{values[2]:^24}+\n"
