@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from datetime import date
 from colorama import Fore
 from database import ExpenseRecord, BudgetRecord, Base
@@ -56,9 +57,10 @@ def func_back(*args) -> CommandCode:
 
 
 def func_quit(*args):
-    exit(0)
+    sys.exit(0)
 
 #----------------- functions for ADD ---------------------#
+
 def func_add(*args) -> CommandCode:
     clearScreen()
     showMessage()
@@ -138,11 +140,12 @@ def getExpense(category: str):
 
     return ExpenseRecord(date=date.today(), category=menu_add[category]['category'], 
                         amount=amount, content=content)
+
 #------------------ functions for CHECK -----------------------#
 
 def func_check(*args):
-    #clearScreen()
-
+    clearScreen()
+    showMessage()
     showMenu(menu_check)
 
     choice = input('>> ')
@@ -164,12 +167,14 @@ def checkExpenseRecord():
         return CommandCode.CHECK
 
     result = session.query(ExpenseRecord.category, 
-                                ExpenseRecord.amount, 
-                                ExpenseRecord.content)\
+                            ExpenseRecord.amount, 
+                            ExpenseRecord.content) \
                     .filter(and_(extract('month', ExpenseRecord.date)==query_time['month'],
-                                extract('year', ExpenseRecord.date)==query_time['year']))\
+                                extract('year', ExpenseRecord.date)==query_time['year'])) \
                     .order_by(ExpenseRecord.category).all()
-    printQueryTable(result)
+
+    setMessage(formatResultTable(result, "category", "amount", "content"))
+
     return CommandCode.CHECK
 
 
@@ -177,10 +182,13 @@ def checkBudgetRecord():
     clearScreen()
     result = session.query(BudgetRecord.month, BudgetRecord.income, 
                             BudgetRecord.outcome, BudgetRecord.saving).all()
-    printQueryTable(result)
+
+    setMessage(formatResultTable(result, "month", "income", "outcome"))
+
     return CommandCode.CHECK
 
 #-----------------------------------------#
+
 def func_update(*args):
     clearScreen()
     setMessage("---- [UPDATE] ----")
@@ -224,9 +232,13 @@ def clearScreen():
     os.system("clear")
 
 
-def printQueryTable(data):
-    for i in data:
-        print(i)
+def formatResultTable(data, *fields):
+    result = table_header_template.format('+', fields=fields)
+
+    for d in data:
+        result += table_row_template.format(values=d)
+    return result
+
 
 def runCommand(code: CommandCode) -> CommandCode:
     return eval(command_map[code]['action'])()

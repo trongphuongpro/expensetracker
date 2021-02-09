@@ -60,3 +60,12 @@ menu_check_expense = {
                     'b': {'command': 'back', 'action': 'func_back'},
                     'q': {'command': 'quit', 'action': 'func_quit'}
                 }
+
+
+table_header_template = '''
+{0:+<60}
++{fields[0]:^16}+{fields[1]:^10}+{fields[2]:^30}+
+{0:+<60}
+'''
+
+table_row_template = "+{values[0]:^16}+{values[1]:^10}+{values[2]:^30}+\n"
