@@ -57,6 +57,7 @@ def func_back(*args) -> CommandCode:
 
 
 def func_quit(*args):
+    clearScreen()
     sys.exit(0)
 
 #----------------- functions for ADD ---------------------#
@@ -141,6 +142,23 @@ def getExpense(category: str):
     return ExpenseRecord(date=date.today(), category=menu_add[category]['category'], 
                         amount=amount, content=content)
 
+
+def deleteLastExpense(*args) -> CommandCode:
+    last_id = session.query(func.max(ExpenseRecord.id_num)).scalar()
+    result = session.query(ExpenseRecord).filter(ExpenseRecord.id_num == last_id)
+
+    # or use subquery
+    #
+    # subquery = session.query(func.max(ExpenseRecord.id_num)).subquery()
+    # result = session.query(ExpenseRecord).filter(ExpenseRecord.id_num.in_(subquery))
+
+    result.delete(synchronize_session=False)
+    session.commit()
+
+    setMessage(f'{last_id} -> result {result}')
+    return CommandCode.ADD
+
+
 #------------------ functions for CHECK -----------------------#
 
 def func_check(*args):
@@ -171,7 +189,7 @@ def checkExpenseRecord():
                             ExpenseRecord.content) \
                     .filter(and_(extract('month', ExpenseRecord.date)==query_time['month'],
                                 extract('year', ExpenseRecord.date)==query_time['year'])) \
-                    .order_by(ExpenseRecord.category).all()
+                    .order_by(ExpenseRecord.category)
 
     setMessage(formatResultTable(result, "category", "amount", "content"))
 
@@ -181,7 +199,7 @@ def checkExpenseRecord():
 def checkBudgetRecord():
     clearScreen()
     result = session.query(BudgetRecord.month, BudgetRecord.income, 
-                            BudgetRecord.outcome, BudgetRecord.saving).all()
+                            BudgetRecord.outcome, BudgetRecord.saving)
 
     setMessage(formatResultTable(result, "month", "income", "outcome"))
 

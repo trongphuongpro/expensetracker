@@ -42,6 +42,7 @@ menu_add = {
                 '4': {'command': 'Quy huong thu', 'category': 'playing', 'action': 'updateDatabase'},
                 '5': {'command': 'Quy tu do tai chinh', 'category': 'free', 'action': 'updateDatabase'},
                 '6': {'command': 'Quy tu thien', 'category': 'giving', 'action': 'updateDatabase'},
+                'z': {'command': 'undo', 'action': 'deleteLastExpense'},
                 'b': {'command': 'back', 'action': 'func_back'},
                 'q': {'command': 'quit', 'action': 'func_quit'}
                 }
