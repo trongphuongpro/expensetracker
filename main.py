@@ -13,16 +13,41 @@ parser = argparse.ArgumentParser()
 parser.add_argument('command', nargs='?', default='wait')
 args = vars(parser.parse_args())
 
-
+# testing for this function
 def getQueryTime(*, get_today=False):
+    first_year = 2021
+
     if not get_today:
+        month = input('[month] ')
+        year = input('[year] ')
+
         try:
-            year = int(input('[year] '))
-            month = int(input('[month] '))
-        except:
-            query_time = None
-        else:
-            query_time = {'year': year, 'month': month}
+            if month.isdigit():
+                month = int(month)
+                if month < 1 or month > 12:
+                    raise ValueError('Invalid month!')
+                else:
+                    month = int(month)
+            elif month == '':
+                month = today.month
+            else:
+                raise ValueError('Invalid symbol for month!')
+
+            if year.isdigit():
+                year = int(year)
+                if year < first_year or year > today.year:
+                    raise ValueError('Invalid year!')
+                else:
+                    year = int(year)
+            elif year == '':
+                year = today.year
+            else:
+                raise ValueError('Invalid symbol for year!')
+
+        except ValueError:
+            return None
+
+        return {'month': month, 'year': year} 
 
     else:
         query_time = f"{today.year}-{today.month:02}"
@@ -100,7 +125,7 @@ def addExpenseRecord(category: str):
 
 
 def updateBudgetRecord():
-    total_expense = session.query(func.sum(ExpenseRecord.amount))\
+    total_expense = session.query(func.coalesce(func.sum(ExpenseRecord.amount), 0))\
                     .filter(and_(extract('month', ExpenseRecord.date)==today.month,
                                 extract('year', ExpenseRecord.date)==today.year))\
                     .scalar()
@@ -145,17 +170,21 @@ def getExpense(category: str):
 
 def deleteLastExpense(*args) -> CommandCode:
     last_id = session.query(func.max(ExpenseRecord.id_num)).scalar()
-    result = session.query(ExpenseRecord).filter(ExpenseRecord.id_num == last_id)
+    result = session.query(ExpenseRecord.content).filter(ExpenseRecord.id_num == last_id)
 
+    text = result.first().content
+  
     # or use subquery
     #
     # subquery = session.query(func.max(ExpenseRecord.id_num)).subquery()
-    # result = session.query(ExpenseRecord).filter(ExpenseRecord.id_num.in_(subquery))
+    # result = session.query(ExpenseRecord).filter(ExpenseRecord.id_num == subquery)
 
     result.delete(synchronize_session=False)
     session.commit()
 
-    setMessage(f'{last_id} -> result {result}')
+    updateBudgetRecord()
+
+    setMessage(f'id: {last_id} -> deleted {text}')
     return CommandCode.ADD
 
 
@@ -199,7 +228,7 @@ def checkExpenseRecord():
 def checkBudgetRecord():
     clearScreen()
     result = session.query(BudgetRecord.month, BudgetRecord.income, 
-                            BudgetRecord.outcome, BudgetRecord.saving)
+                            BudgetRecord.outcome)
 
     setMessage(formatResultTable(result, "month", "income", "outcome"))
 
@@ -254,6 +283,7 @@ def formatResultTable(data, *fields):
     result = table_header_template.format('+', fields=fields)
 
     for d in data:
+        print(d)
         result += table_row_template.format(values=d)
     return result
 
@@ -274,7 +304,8 @@ def event_loop():
 
 
 if __name__ == '__main__':
-    engine = create_engine('sqlite:///record.db', echo=False)
+    app_path = os.path.dirname(os.path.realpath(__file__))
+    engine = create_engine(f'sqlite:///{app_path}/record.db', echo=False)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
